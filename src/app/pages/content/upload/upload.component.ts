@@ -8,16 +8,18 @@ import { Component, Input } from '@angular/core';
 export class UploadComponent {
 
   files: File[] = [];
-  validDrag: Boolean;
   @Input() multi: string
 
   @Input() onUpload = (files: File[]) => { };
 
-  onFilesChange() {
-
+  onFilesChange(event: any) {
+    this.files.push(...event.addedFiles);
     this.onUpload([...this.files]);
-
     this.files.length = 0;
+  }
+
+  onRemove(file: File) {
+    this.files.splice(this.files.indexOf(file), 1);
   }
 
 }

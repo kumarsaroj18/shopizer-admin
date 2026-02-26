@@ -21,7 +21,8 @@
       {
         "name": "tslint-language-service"
       }
-    ]
+    ],
+    "skipLibCheck": true
   },
   "angularCompilerOptions": {
     "enableIvy": false,
