@@ -1,6 +1,40 @@
 #!/bin/bash
+# ═══════════════════════════════════════════════════════════════
+# download-and-run.sh — Download and serve Shopizer Admin artifacts
+# ═══════════════════════════════════════════════════════════════
+# Usage:
+#   GITHUB_TOKEN=<token> ./download-and-run.sh [OPTIONS]
+#
+# Options:
+#   --help, -h    Show this help message
+#
+# Environment Variables:
+#   GITHUB_TOKEN  Personal access token for GitHub API (required)
+#   REPO_OWNER    GitHub owner (auto-detected from git remote)
+#   REPO_NAME     Repository name (auto-detected from git remote)
+#
+# Examples:
+#   GITHUB_TOKEN=ghp_xxxx ./download-and-run.sh
+#   GITHUB_TOKEN=ghp_xxxx REPO_OWNER=myuser ./download-and-run.sh
+#
+# The script downloads the latest build artifacts and serves them
+# on port 4200 using Python's HTTP server.
+# ═══════════════════════════════════════════════════════════════
 
 set -e
+
+usage() {
+  sed -n '/^# Usage/,/^# ====/p' "$0" | grep -v '^# ====' | sed 's/^# //'
+  exit 0
+}
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --help|-h) usage ;;
+    *) echo "Unknown option: $1"; usage ;;
+  esac
+done
 
 REPO_OWNER="${REPO_OWNER:-$(git config --get remote.origin.url | sed -n 's/.*github.com[:/]\([^/]*\)\/.*/\1/p')}"
 REPO_NAME="${REPO_NAME:-$(basename -s .git $(git config --get remote.origin.url))}"
@@ -10,6 +44,8 @@ OUTPUT_DIR="./downloaded-artifacts"
 if [ -z "$GITHUB_TOKEN" ]; then
   echo "Error: GITHUB_TOKEN environment variable is required"
   echo "Usage: GITHUB_TOKEN=your_token ./download-and-run.sh"
+  echo ""
+  echo "Run './download-and-run.sh --help' for more information"
   exit 1
 fi
 

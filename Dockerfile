@@ -7,6 +7,7 @@ RUN ls -al
 COPY dist /usr/share/nginx/html
 
 # Copy Nginx Files
+# Uses simple config without proxy_pass - Angular app calls backend directly via env.js
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
 
 # EXPOSE Port 80

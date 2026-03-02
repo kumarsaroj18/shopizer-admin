@@ -5,33 +5,53 @@ on:
     branches: [ main, master, develop ]
   pull_request:
     branches: [ main, master, develop ]
+  workflow_dispatch:   # allow manual trigger → CD can then be triggered via manual dispatch
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
+    outputs:
+      artifact_name: ${{ steps.upload.outputs.artifact_name }}
+
     steps:
-    - uses: actions/checkout@v3
-    
+    - uses: actions/checkout@v4
+
     - name: Setup Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: '12.22.7'
         cache: 'npm'
-    
+
     - name: Install dependencies
       run: npm install --legacy-peer-deps
-    
+
     - name: Build
       run: npm run build
-    
+
     - name: Archive build artifacts
       run: tar -czf shopizer-admin-${{ github.sha }}.tar.gz -C dist/ .
-    
+
     - name: Upload artifacts
+      id: upload
       uses: actions/upload-artifact@v4
       with:
         name: shopizer-admin-build-${{ github.run_number }}
         path: shopizer-admin-${{ github.sha }}.tar.gz
         retention-days: 90
         compression-level: 0
+
+    - name: Job summary
+      run: |
+        SHORT_SHA="${GITHUB_SHA:0:8}"
+        VERSION=$(node -p "require('./package.json').version" 2>/dev/null || echo "unknown")
+        cat >> "$GITHUB_STEP_SUMMARY" << EOF
+        ## CI Build ✅
+        | Field          | Value |
+        |:---------------|:------|
+        | Version        | \`${VERSION}\` |
+        | Git SHA        | \`${GITHUB_SHA}\` |
+        | Short SHA      | \`${SHORT_SHA}\` |
+        | Artifact name  | \`shopizer-admin-build-${{ github.run_number }}\` |
+        | Artifact file  | \`shopizer-admin-${GITHUB_SHA}.tar.gz\` |
+        EOF
